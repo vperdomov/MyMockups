@@ -3,483 +3,529 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mockup Dashboard BI - Happ Chile</title>
-    <!-- Incluimos la librería Chart.js desde un CDN para los gráficos -->
+    <title>Mockup Dashboard BI - Proyecto de Salud</title>
+    <!-- Se incluye Chart.js desde un CDN para los gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <style>
-        /* --- ESTILOS GENERALES Y FUENTES --- */
-        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap');
+        /* --- Definición de la Paleta de Colores y Estilos Base --- */
+        :root {
+            --primary-color: #215778;
+            --secondary-color: #205576;
+            --accent-blue: #5AC3F3;
+            --accent-red: #9F5344;
+            --accent-neutral-light: #E5E9EE;
+            --accent-neutral-medium: #929BA6;
+            --text-color-light: #FFFFFF;
+            --text-color-dark: #333333;
+            --bg-color: #F4F7FA;
+            --border-color: #E0E0E0;
+        }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5; /* Un gris claro similar al fondo de Power BI Service */
+            background-color: var(--bg-color);
             margin: 0;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* --- CONTENEDOR PRINCIPAL DEL DASHBOARD (16:9) --- */
-        .dashboard-container {
-            width: 95vw;
-            max-width: 1400px;
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            color: var(--text-color-dark);
             display: flex;
             flex-direction: column;
-            aspect-ratio: 16 / 9; /* Mantiene la proporción 16:9 */
-        }
-
-        /* --- ENCABEZADO Y FILTROS --- */
-        .header {
-            padding: 12px 20px;
-            background-color: #f7f7f7;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            flex-shrink: 0;
         }
-        .header h1 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
+
+        /* --- Contenedor Principal y Aspecto 16:9 --- */
+        .dashboard-container {
+            width: 100%;
+            max-width: 1400px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            background-color: var(--primary-color);
+            color: var(--text-color-light);
+        }
+
+        header img {
+            height: 40px;
+            margin-right: 20px;
+        }
+
+        header h1 {
+            font-size: 1.5em;
             margin: 0;
-        }
-        .filters {
-            display: flex;
-            gap: 15px;
-        }
-        .filters select, .filters input {
-            padding: 6px 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        /* --- PESTAÑAS DE NAVEGACIÓN --- */
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #01B8AA; /* Color corporativo Happ */
-            background-color: #fff;
-            padding: 0 20px;
-            flex-shrink: 0;
-        }
-        .tab-link {
-            background-color: transparent;
-            border: none;
-            padding: 14px 18px;
-            cursor: pointer;
-            font-size: 15px;
             font-weight: 600;
-            color: #555;
-            transition: color 0.2s, border-bottom 0.2s;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px; /* Alinea con el borde inferior del contenedor */
-        }
-        .tab-link:hover {
-            color: #000;
-        }
-        .tab-link.active {
-            color: #01B8AA;
-            border-bottom: 3px solid #01B8AA;
         }
 
-        /* --- CONTENIDO DE LAS PESTAÑAS --- */
-        .tab-content-wrapper {
-            flex-grow: 1;
-            padding: 20px;
-            overflow: auto;
-            background-color: #f0f2f5; /* Fondo del área de contenido */
+        /* --- Pestañas de Navegación --- */
+        .tab-nav {
+            display: flex;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid var(--border-color);
         }
+
+        .tab-button {
+            background-color: inherit;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 1em;
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .tab-button:hover {
+            background-color: #ddd;
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: var(--text-color-light);
+            border-bottom: 3px solid var(--accent-blue);
+        }
+
+        /* --- Forzar Contenido a 16:9 --- */
+        .aspect-ratio-box {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-top: 56.25%; /* 9 / 16 = 0.5625 */
+        }
+
+        .aspect-ratio-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
         .tab-content {
             display: none;
+            padding: 20px;
+            box-sizing: border-box;
+            height: 100%;
         }
 
-        /* --- ESTILO DE TARJETAS (WIDGETS) --- */
-        .card {
+        /* --- Estructura y Estilos de los Dashboards --- */
+        .grid-container {
+            display: grid;
+            gap: 20px;
+            height: 100%;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto 1fr 1fr;
+        }
+        
+        .grid-item {
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
+            border: 1px solid var(--border-color);
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-        }
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            margin: 0 0 15px 0;
-        }
-        .kpi-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: #01B8AA;
-            margin: 0;
-            line-height: 1.1;
-        }
-        .kpi-label {
-            font-size: 14px;
-            color: #666;
-            margin: 5px 0 0 0;
         }
         
-        /* --- GRID LAYOUT PARA DASHBOARDS --- */
-        .dashboard-grid {
-            display: grid;
-            gap: 20px;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: auto 1fr;
+        /* --- Tarjetas de KPI --- */
+        .kpi-card {
+            grid-column: span 1;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
-        .kpi-card { grid-column: span 1; }
-        .main-chart { grid-column: span 3; }
-        .donut-chart { grid-column: span 1; }
-        .bar-chart-1 { grid-column: span 2; }
-        .bar-chart-2 { grid-column: span 2; }
 
-        /* --- TABLA DETALLADA --- */
-        .table-container {
-            height: 100%;
-            overflow: auto; /* Permite scroll dentro del contenedor si la tabla es grande */
+        .kpi-title {
+            font-size: 0.9em;
+            color: var(--accent-neutral-medium);
+            margin-bottom: 8px;
         }
-        table {
+
+        .kpi-value {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .kpi-sub-value {
+            font-size: 0.9em;
+            color: var(--accent-red);
+        }
+        
+        /* --- Contenedores de Gráficos --- */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .main-chart { grid-column: span 2; grid-row: span 2; }
+        .side-chart-1 { grid-column: span 2; grid-row: 2; }
+        .side-chart-2 { grid-column: span 2; grid-row: 3; }
+
+        .analysis-grid .grid-item { grid-column: span 2; grid-row: span 1; }
+
+        /* --- Pestaña de Tabla Detallada --- */
+        #detalle .grid-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .table-wrapper {
+            flex-grow: 1;
+            overflow: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        #detailed-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 0.85em;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
+
+        #detailed-table th, #detailed-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
             text-align: left;
             white-space: nowrap;
         }
-        thead {
-            background-color: #e9ecef;
+
+        #detailed-table thead {
             position: sticky;
-            top: 0; /* Fija el encabezado al hacer scroll */
+            top: 0;
+            background-color: var(--secondary-color);
+            color: var(--text-color-light);
+            z-index: 10;
         }
-        tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
+
+        #detailed-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
         }
+        
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
-        <!-- ENCABEZADO -->
-        <header class="header">
-            <h1>Dashboard de Salud Operacional - Happ Chile</h1>
-            <div class="filters">
-                <select id="empresa">
-                    <option>Todas las Empresas</option>
-                    <option>METBUS</option>
-                    <option>FALABELLA</option>
-                </select>
-                <select id="sucursal">
-                    <option>Todas las Sucursales</option>
-                    <option>METBUS-PROVIDENCIA</option>
-                    <option>FALABELLA-CENTRAL</option>
-                </select>
-                <input type="date" id="fecha_inicio" value="2025-01-01">
-                <input type="date" id="fecha_fin" value="2025-12-31">
-            </div>
+        <header>
+            <!-- LOGO REEMPLAZADO: Ahora es un SVG genérico incrustado como Data URI -->
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBmaWxsPSIjRTVFOUVFIj48cmVjdCB3aWR0aD0iMjIiIGhlaWdodD0iNjAiIHg9IjE1IiB5PSI0MCIgcng9IjUiPjwvcmVjdD48cmVjdCB3aWR0aD0iMjIiIGhlaWdodD0iODAiIHg9IjM5IiB5PSIyMCIgcng9IjUiPjwvcmVjdD48cmVjdCB3aWR0aD0iMjIiIGhlaWdodD0iNTAiIHg9IjYzIiB5PSI1MCIgcng9IjUiPjwvcmVjdD48L3N2Zz4=" alt="Logo BI">
+            <h1>Dashboard Operativo de Salud</h1>
         </header>
 
-        <!-- PESTAÑAS -->
-        <div class="tabs">
-            <button class="tab-link active" onclick="openTab(event, 'Resumen')">Resumen General</button>
-            <button class="tab-link" onclick="openTab(event, 'AnalisisRiesgo')">Análisis de Riesgo</button>
-            <button class="tab-link" onclick="openTab(event, 'Detalle')">Reporte Detallado</button>
-        </div>
+        <nav class="tab-nav">
+            <button class="tab-button active" onclick="showTab('resumen')">Resumen General</button>
+            <button class="tab-button" onclick="showTab('analisis')">Análisis de Indicadores</button>
+            <button class="tab-button" onclick="showTab('detalle')">Detalle de Resultados</button>
+        </nav>
+        
+        <div class="aspect-ratio-box">
+            <div class="aspect-ratio-content">
 
-        <!-- CONTENIDO DE LAS PESTAÑAS -->
-        <div class="tab-content-wrapper">
+                <!-- Pestaña 1: Resumen General -->
+                <div id="resumen" class="tab-content" style="display: block;">
+                    <div class="grid-container">
+                        <div class="grid-item kpi-card">
+                            <div class="kpi-title">Total Atenciones</div>
+                            <div class="kpi-value">1,245</div>
+                        </div>
+                        <div class="grid-item kpi-card">
+                            <div class="kpi-title">Personas Atendidas</div>
+                            <div class="kpi-value">830</div>
+                        </div>
+                        <div class="grid-item kpi-card">
+                            <div class="kpi-title">Promedio IMC</div>
+                            <div class="kpi-value">28.7</div>
+                        </div>
+                         <div class="grid-item kpi-card">
+                            <div class="kpi-title">% Pacientes en Riesgo Alto</div>
+                            <div class="kpi-value">18%</div>
+                             <div class="kpi-sub-value">(HTA o Diabetes)</div>
+                        </div>
+                        <div class="grid-item main-chart">
+                            <div class="chart-container">
+                                <canvas id="riesgosChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="grid-item side-chart-1">
+                            <div class="chart-container">
+                                <canvas id="tipoOperativoChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="grid-item side-chart-2">
+                             <div class="chart-container">
+                                <canvas id="empresasChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Pestaña 1: Resumen General -->
-            <div id="Resumen" class="tab-content dashboard-grid" style="display: grid;">
-                <div class="card kpi-card">
-                    <p class="kpi-value">4.521</p>
-                    <p class="kpi-label">Total Atenciones</p>
-                </div>
-                <div class="card kpi-card">
-                    <p class="kpi-value">1.830</p>
-                    <p class="kpi-label">Personas Únicas Evaluadas</p>
-                </div>
-                <div class="card kpi-card">
-                    <p class="kpi-value">38%</p>
-                    <p class="kpi-label">% Riesgo Alto (General)</p>
-                </div>
-                <div class="card kpi-card">
-                    <p class="kpi-value">Metbus</p>
-                    <p class="kpi-label">Empresa con más Atenciones</p>
+                <!-- Pestaña 2: Análisis de Indicadores -->
+                <div id="analisis" class="tab-content">
+                    <div class="grid-container analysis-grid">
+                        <div class="grid-item">
+                            <div class="chart-container">
+                                <canvas id="presionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="chart-container">
+                                <canvas id="imcChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="chart-container">
+                                <canvas id="labChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="chart-container">
+                                <canvas id="generoChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card main-chart">
-                    <h2 class="card-title">Atenciones por Mes</h2>
-                    <canvas id="atencionesMesChart"></canvas>
-                </div>
-                <div class="card donut-chart">
-                    <h2 class="card-title">Atenciones por Tipo</h2>
-                    <canvas id="tipoOperativoChart"></canvas>
+                <!-- Pestaña 3: Detalle de Resultados -->
+                <div id="detalle" class="tab-content">
+                    <div class="grid-container">
+                        <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Buscar en la tabla...">
+                        <div class="table-wrapper">
+                            <table id="detailed-table">
+                                <thead>
+                                    <tr>
+                                        <th>RUT</th>
+                                        <th>Nombre</th>
+                                        <th>Género</th>
+                                        <th>Fecha Nacimiento</th>
+                                        <th>Edad</th>
+                                        <th>Tipo Operativo</th>
+                                        <th>Fecha Operativo</th>
+                                        <th>Empresa</th>
+                                        <th>Sucursal</th>
+                                        <th>IMC</th>
+                                        <th>Presión Sistólica</th>
+                                        <th>Presión Diastólica</th>
+                                        <th>LDL</th>
+                                        <th>HDL</th>
+                                        <th>Triglicéridos</th>
+                                        <th>Glicemia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Datos de ejemplo. En una aplicación real, esto se generaría dinámicamente. -->
+                                    <tr><td>17647770-9</td><td>YERTTY AGUAYO</td><td>F</td><td>17/11/1990</td><td>35</td><td>CARDIO</td><td>17/11/2025</td><td>METBUS</td><td>METBUS-PROVIDENCIA</td><td>35.0</td><td>135</td><td>85</td><td>140</td><td>45</td><td>160</td><td>110</td></tr>
+                                    <tr><td>18123456-7</td><td>JUAN PÉREZ</td><td>M</td><td>20/05/1985</td><td>40</td><td>CARDIO</td><td>17/11/2025</td><td>METBUS</td><td>METBUS-PROVIDENCIA</td><td>27.5</td><td>125</td><td>80</td><td>110</td><td>50</td><td>140</td><td>98</td></tr>
+                                    <tr><td>17647770-10</td><td>YERTTY AGUAYO</td><td>F</td><td>17/11/1990</td><td>35</td><td>AUDIOMETRIA</td><td>18/11/2025</td><td>FALABELLA</td><td>FALABELLA-CENTRAL</td><td>31.0</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+                                    <tr><td>19876543-2</td><td>MARÍA GONZÁLEZ</td><td>F</td><td>10/01/1992</td><td>33</td><td>CARDIO</td><td>18/11/2025</td><td>FALABELLA</td><td>FALABELLA-CENTRAL</td><td>22.1</td><td>118</td><td>75</td><td>95</td><td>60</td><td>110</td><td>92</td></tr>
+                                    <tr><td>17647770-11</td><td>YERTTY AGUAYO</td><td>F</td><td>17/11/1990</td><td>35</td><td>MASAJE</td><td>19/11/2025</td><td>ARAUCANA</td><td>-</td><td>25.0</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+                                    <tr><td>16555444-3</td><td>PEDRO SOTO</td><td>M</td><td>03/08/1988</td><td>37</td><td>CARDIO</td><td>19/11/2025</td><td>ARAUCANA</td><td>-</td><td>30.2</td><td>142</td><td>91</td><td>165</td><td>40</td><td>250</td><td>128</td></tr>
+                                    <tr><td>20111222-K</td><td>SOFIA LÓPEZ</td><td>F</td><td>12/12/2000</td><td>25</td><td>AUDIOMETRIA</td><td>20/11/2025</td><td>METBUS</td><td>METBUS-MAIPU</td><td>21.5</td><td>110</td><td>70</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+                                    <tr><td>15987654-1</td><td>CARLOS RUIZ</td><td>M</td><td>25/07/1983</td><td>42</td><td>CARDIO</td><td>20/11/2025</td><td>METBUS</td><td>METBUS-MAIPU</td><td>29.8</td><td>138</td><td>88</td><td>150</td><td>42</td><td>180</td><td>115</td></tr>
+                                    <tr><td>17888999-0</td><td>LAURA CASTRO</td><td>F</td><td>01/03/1995</td><td>30</td><td>MASAJE</td><td>21/11/2025</td><td>FALABELLA</td><td>FALABELLA-PLAZA OESTE</td><td>24.1</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+                                    <tr><td>16222333-4</td><td>JAVIER MUÑOZ</td><td>M</td><td>15/09/1986</td><td>39</td><td>CARDIO</td><td>21/11/2025</td><td>FALABELLA</td><td>FALABELLA-PLAZA OESTE</td><td>26.4</td><td>130</td><td>82</td><td>125</td><td>48</td><td>155</td><td>105</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <!-- Pestaña 2: Análisis de Riesgo por Patología -->
-            <div id="AnalisisRiesgo" class="tab-content dashboard-grid">
-                <div class="card" style="grid-column: span 4;">
-                    <h2 class="card-title">Distribución de Riesgo por Patología</h2>
-                    <canvas id="riesgoPatologiaChart"></canvas>
-                </div>
-                <div class="card bar-chart-1">
-                    <h2 class="card-title">Distribución de IMC</h2>
-                    <canvas id="imcChart"></canvas>
-                </div>
-                <div class="card bar-chart-2">
-                     <h2 class="card-title">Distribución Presión Sistólica</h2>
-                    <canvas id="sistolicaChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Pestaña 3: Reporte Detallado -->
-            <div id="Detalle" class="tab-content">
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Rut Persona</th>
-                                <th>Nombre</th>
-                                <th>Edad</th>
-                                <th>Tipo Operativo</th>
-                                <th>Fecha de Operativo</th>
-                                <th>Empresa</th>
-                                <th>Sucursal</th>
-                                <th>Profesional</th>
-                                <th>IMC</th>
-                                <th>Sistólica</th>
-                                <th>Diastólica</th>
-                                <th>Glicemia</th>
-                                <th>Colesterol</th>
-                                <th>LDL</th>
-                                <th>HDL</th>
-                                <th>Triglicéridos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>17647770-9</td>
-                                <td>YERTTY AGUAYO</td>
-                                <td>35</td>
-                                <td>CARDIO</td>
-                                <td>17/11/2025</td>
-                                <td>METBUS</td>
-                                <td>METBUS-PROVIDENCIA</td>
-                                <td>Ana maria</td>
-                                <td>35.0</td>
-                                <td>135</td>
-                                <td>85</td>
-                                <td>140</td>
-                                <td>210</td>
-                                <td>135</td>
-                                <td>40</td>
-                                <td>180</td>
-                            </tr>
-                            <tr>
-                                <td>17647770-10</td>
-                                <td>YERTTY AGUAYO</td>
-                                <td>35</td>
-                                <td>AUDIOMETRIA</td>
-                                <td>18/11/2025</td>
-                                <td>FALABELLA</td>
-                                <td>FALABELLA-CENTRAL</td>
-                                <td>Ana maria</td>
-                                <td>31.0</td>
-                                <td>125</td>
-                                <td>78</td>
-                                <td>110</td>
-                                <td>190</td>
-                                <td>120</td>
-                                <td>45</td>
-                                <td>140</td>
-                            </tr>
-                            <tr>
-                                <td>12345678-1</td>
-                                <td>JUAN PEREZ</td>
-                                <td>42</td>
-                                <td>CARDIO</td>
-                                <td>15/11/2025</td>
-                                <td>METBUS</td>
-                                <td>METBUS-PROVIDENCIA</td>
-                                <td>Carlos Rojas</td>
-                                <td>28.5</td>
-                                <td>145</td>
-                                <td>92</td>
-                                <td>115</td>
-                                <td>240</td>
-                                <td>165</td>
-                                <td>35</td>
-                                <td>250</td>
-                            </tr>
-                             <tr>
-                                <td>98765432-1</td>
-                                <td>MARIA GONZALEZ</td>
-                                <td>28</td>
-                                <td>MASAJE</td>
-                                <td>19/11/2025</td>
-                                <td>FALABELLA</td>
-                                <td>FALABELLA-CENTRAL</td>
-                                <td>Laura Soto</td>
-                                <td>22.1</td>
-                                <td>110</td>
-                                <td>70</td>
-                                <td>95</td>
-                                <td>180</td>
-                                <td>100</td>
-                                <td>60</td>
-                                <td>120</td>
-                            </tr>
-                             <tr>
-                                <td>17647770-11</td>
-                                <td>YERTTY AGUAYO</td>
-                                <td>35</td>
-                                <td>MASAJE</td>
-                                <td>19/11/2025</td>
-                                <td>ARAUCANA</td>
-                                <td></td>
-                                <td>Ana maria</td>
-                                <td>25.0</td>
-                                <td>118</td>
-                                <td>75</td>
-                                <td>105</td>
-                                <td>188</td>
-                                <td>115</td>
-                                <td>55</td>
-                                <td>130</td>
-                            </tr>
-                            <!-- Más filas de datos irían aquí -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <script>
-        // --- LÓGICA DE NAVEGACIÓN DE PESTAÑAS ---
-        function openTab(evt, tabName) {
-            // Oculta todo el contenido de las pestañas
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-            }
-
-            // Quita la clase "active" de todos los botones de pestaña
-            tablinks = document.getElementsByClassName("tab-link");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-
-            // Muestra la pestaña actual y añade la clase "active" al botón
-            document.getElementById(tabName).style.display = "grid"; // Usamos grid para los dashboards
-            if (tabName === 'Detalle') {
-                 document.getElementById(tabName).style.display = "block"; // Usamos block para la tabla
-            }
-            evt.currentTarget.className += " active";
-        }
-
-        // --- CÓDIGO PARA INICIALIZAR LOS GRÁFICOS (con datos de ejemplo) ---
-        // Usamos un listener para asegurarnos de que el DOM está cargado
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            // Gráfico 1: Atenciones por Mes (Líneas)
-            const atencionesCtx = document.getElementById('atencionesMesChart').getContext('2d');
-            new Chart(atencionesCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
-                    datasets: [{
-                        label: 'Atenciones',
-                        data: [320, 450, 400, 550, 680, 710, 850],
-                        borderColor: '#01B8AA',
-                        backgroundColor: 'rgba(1, 184, 170, 0.1)',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: { maintainAspectRatio: false }
-            });
-
-            // Gráfico 2: Atenciones por Tipo (Donut)
-            const tipoCtx = document.getElementById('tipoOperativoChart').getContext('2d');
-            new Chart(tipoCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['CARDIO', 'AUDIOMETRIA', 'MASAJE', 'KINE'],
-                    datasets: [{
-                        label: 'Nº Atenciones',
-                        data: [1850, 1230, 980, 461],
-                        backgroundColor: ['#01B8AA', '#35D6C4', '#2C8C82', '#78E8DD'],
-                        borderWidth: 1
-                    }]
-                },
-                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
-            
-            // Gráfico 3: Distribución de Riesgo por Patología (Barras Apiladas)
-            const riesgoCtx = document.getElementById('riesgoPatologiaChart').getContext('2d');
-            new Chart(riesgoCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Obesidad', 'Hipertensión', 'Dislipidemia', 'Diabetes', 'Daño Renal'],
-                    datasets: [
-                        { label: 'Normal', data: [800, 750, 600, 900, 1100], backgroundColor: '#5cb85c' },
-                        { label: 'Riesgo/Leve', data: [500, 600, 750, 450, 300], backgroundColor: '#f0ad4e' },
-                        { label: 'Moderado/Severo', data: [250, 310, 350, 150, 100], backgroundColor: '#d9534f' }
-                    ]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    scales: { x: { stacked: true }, y: { stacked: true } },
-                    plugins: { legend: { position: 'top' } }
-                }
-            });
-
-            // Gráfico 4 y 5: Distribución de IMC y Presión (Barras)
-            const imcCtx = document.getElementById('imcChart').getContext('2d');
-            new Chart(imcCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Normal', 'Pre o Riesgo', 'Leve', 'Moderado', 'Severo'],
-                    datasets: [{
-                        label: 'Nº Personas',
-                        data: [650, 520, 310, 180, 55],
-                        backgroundColor: '#35D6C4'
-                    }]
-                },
-                 options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }}
-            });
-            
-            const sistolicaCtx = document.getElementById('sistolicaChart').getContext('2d');
-            new Chart(sistolicaCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Normal', 'Pre o Riesgo', 'Leve', 'Moderado', 'Severo/Crítico'],
-                    datasets: [{
-                        label: 'Nº Personas',
-                        data: [710, 490, 350, 195, 60],
-                        backgroundColor: '#2C8C82'
-                    }]
-                },
-                 options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }}
-            });
+<script>
+    // --- Lógica de Pestañas ---
+    function showTab(tabId) {
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => {
+            content.style.display = 'none';
         });
-    </script>
+
+        const buttons = document.querySelectorAll('.tab-button');
+        buttons.forEach(button => {
+            button.classList.remove('active');
+        });
+
+        document.getElementById(tabId).style.display = 'block';
+        
+        const activeButton = Array.from(buttons).find(btn => btn.getAttribute('onclick') === `showTab('${tabId}')`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+
+    // --- Lógica de Búsqueda en Tabla ---
+    function filterTable() {
+        const input = document.getElementById("search-input");
+        const filter = input.value.toUpperCase();
+        const table = document.getElementById("detailed-table");
+        const tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            let td = tr[i].getElementsByTagName("td");
+            let visible = false;
+            for (let j = 0; j < td.length; j++) {
+                if (td[j]) {
+                    if (td[j].innerHTML.toUpperCase().indexOf(filter) > -1) {
+                        visible = true;
+                        break;
+                    }
+                }
+            }
+            tr[i].style.display = visible ? "" : "none";
+        }
+    }
+
+    // --- Configuración y Datos de Gráficos ---
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const happColors = {
+            primary: 'rgba(33, 87, 120, 0.8)',
+            secondary: 'rgba(32, 85, 118, 0.8)',
+            accentBlue: 'rgba(90, 195, 243, 0.8)',
+            accentRed: 'rgba(159, 83, 68, 0.8)',
+            accentNeutral: 'rgba(146, 155, 166, 0.8)',
+            accentOrange: 'rgba(159, 130, 100, 0.8)',
+        };
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    font: {
+                        size: 16
+                    }
+                }
+            },
+        };
+        
+        // Gráfico 1: Distribución de Riesgos por Patología
+        const ctxRiesgos = document.getElementById('riesgosChart').getContext('2d');
+        new Chart(ctxRiesgos, {
+            type: 'bar',
+            data: {
+                labels: ['Hipertensión', 'Diabetes', 'Dislipidemia', 'Obesidad'],
+                datasets: [
+                    { label: 'Riesgo Alto/Severo', data: [85, 60, 110, 150], backgroundColor: happColors.accentRed },
+                    { label: 'Riesgo Moderado', data: [120, 90, 140, 180], backgroundColor: happColors.accentOrange },
+                    { label: 'Pre-Riesgo', data: [210, 150, 200, 220], backgroundColor: happColors.accentNeutral },
+                    { label: 'Normal', data: [415, 530, 380, 280], backgroundColor: happColors.secondary }
+                ]
+            },
+            options: {...chartOptions, indexAxis: 'y', scales: { x: { stacked: true }, y: { stacked: true } }, title: {...chartOptions.plugins.title, text: 'Distribución de Riesgos por Patología'}}
+        });
+
+        // Gráfico 2: Atenciones por Tipo de Operativo
+        const ctxTipoOperativo = document.getElementById('tipoOperativoChart').getContext('2d');
+        new Chart(ctxTipoOperativo, {
+            type: 'doughnut',
+            data: {
+                labels: ['Cardio', 'Audiometría', 'Masaje', 'Kinesiología'],
+                datasets: [{
+                    label: 'Atenciones',
+                    data: [750, 250, 180, 65],
+                    backgroundColor: [happColors.primary, happColors.accentBlue, happColors.accentNeutral, happColors.accentOrange]
+                }]
+            },
+            options: {...chartOptions, title: {...chartOptions.plugins.title, text: 'Atenciones por Tipo de Operativo'}}
+        });
+        
+        // Gráfico 3: Top Empresas
+        const ctxEmpresas = document.getElementById('empresasChart').getContext('2d');
+        new Chart(ctxEmpresas, {
+            type: 'bar',
+            data: {
+                labels: ['METBUS', 'FALABELLA', 'ARAUCANA', 'COPEC', 'CENCOSUD'],
+                datasets: [{
+                    label: 'Nº de Atenciones',
+                    data: [420, 310, 250, 155, 110],
+                    backgroundColor: happColors.secondary
+                }]
+            },
+            options: {...chartOptions, title: {...chartOptions.plugins.title, text: 'Top 5 Empresas por Atenciones'}}
+        });
+
+        // Gráfico 4: Presión Arterial
+        const ctxPresion = document.getElementById('presionChart').getContext('2d');
+        new Chart(ctxPresion, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Pacientes',
+                    data: [ {x: 120, y: 80}, {x: 135, y: 85}, {x: 118, y: 75}, {x: 142, y: 91}, {x: 138, y: 88}, {x: 110, y: 70}, {x: 160, y: 100}, {x: 125, y: 78}, {x: 133, y: 84} ],
+                    backgroundColor: happColors.primary
+                }]
+            },
+            options: {...chartOptions, scales: { x: { title: { display: true, text: 'Sistólica (mmHg)' } }, y: { title: { display: true, text: 'Diastólica (mmHg)' } } }, title: {...chartOptions.plugins.title, text: 'Presión Arterial (Sistólica vs. Diastólica)'}}
+        });
+        
+        // Gráfico 5: Distribución IMC
+        const ctxImc = document.getElementById('imcChart').getContext('2d');
+        new Chart(ctxImc, {
+            type: 'bar',
+            data: {
+                labels: ['<18.5', '18.5-24.9', '25-29.9', '30-34.9', '35-39.9', '40+'],
+                datasets: [{
+                    label: 'Nº de Personas',
+                    data: [25, 310, 450, 280, 120, 60],
+                    backgroundColor: happColors.secondary
+                }]
+            },
+            options: {...chartOptions, plugins: {...chartOptions.plugins, legend: { display: false }}, title: {...chartOptions.plugins.title, text: 'Distribución de IMC'}}
+        });
+
+        // Gráfico 6: Valores de Laboratorio
+        const ctxLab = document.getElementById('labChart').getContext('2d');
+        new Chart(ctxLab, {
+            type: 'bar',
+            data: {
+                labels: ['Colesterol Total', 'LDL', 'HDL', 'Triglicéridos'],
+                datasets: [{
+                    label: 'Valor Promedio (mg/dL)',
+                    data: [195, 128, 48, 165],
+                    backgroundColor: [happColors.primary, happColors.secondary, happColors.accentBlue, happColors.accentOrange]
+                }]
+            },
+            options: {...chartOptions, plugins: {...chartOptions.plugins, legend: { display: false }}, title: {...chartOptions.plugins.title, text: 'Valores Promedio de Laboratorio'}}
+        });
+        
+        // Gráfico 7: Distribución por Género
+        const ctxGenero = document.getElementById('generoChart').getContext('2d');
+        new Chart(ctxGenero, {
+            type: 'pie',
+            data: {
+                labels: ['Masculino', 'Femenino'],
+                datasets: [{
+                    label: 'Distribución',
+                    data: [480, 765],
+                    backgroundColor: [happColors.primary, happColors.accentBlue]
+                }]
+            },
+            options: {...chartOptions, title: {...chartOptions.plugins.title, text: 'Distribución por Género'}}
+        });
+
+    });
+</script>
 
 </body>
 </html>
