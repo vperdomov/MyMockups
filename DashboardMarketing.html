@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #F5F5F5;
+            --canvas-bg: #FFFFFF;
+            --primary-text: #333333;
+            --secondary-text: #666666;
+            --border-color: #E0E0E0;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --corp-blue-dark: #002E5D;
+            --corp-gold-accent: #C5B358;
+            --positive-color: #16A34A; /* Green */
+            --negative-color: #DC2626; /* Red */
+            --warning-color: #F59E0B; /* Amber */
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1440px;
+            background-color: var(--canvas-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            aspect-ratio: 16 / 9;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            background-color: var(--corp-blue-dark);
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+        }
+        
+        .logo span {
+            color: var(--corp-gold-accent);
+        }
+
+        .dashboard-title {
+            margin-left: 24px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .dashboard-body {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .filters-pane {
+            width: 240px;
+            background-color: #FAFAFA;
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group {
+            margin-bottom: 24px;
+        }
+
+        .filter-group h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--corp-blue-dark);
+            border-bottom: 2px solid var(--corp-gold-accent);
+            padding-bottom: 4px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .filter-group input[type="date"],
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+        }
+
+        .filter-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+        
+        .clear-filters-btn {
+            margin-top: auto; /* Pushes button to the bottom */
+            width: 100%;
+            padding: 10px;
+            background-color: var(--corp-gold-accent);
+            color: var(--corp-blue-dark);
+            border: none;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .clear-filters-btn:hover {
+            background-color: #b3a14e;
+        }
+
+
+        .main-canvas {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+
+        .tab-button {
+            padding: 14px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--secondary-text);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1px; /* Overlap border */
+            transition: all 0.2s ease-in-out;
+        }
+
+        .tab-button.active {
+            color: var(--corp-blue-dark);
+            border-bottom-color: var(--corp-gold-accent);
+        }
+
+        .tab-content {
+            display: none;
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+        }
+
+        .tab-content.active {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(150px, auto);
+        }
+
+        .card {
+            background-color: var(--canvas-bg);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--corp-blue-dark);
+        }
+        
+        .kpi-card {
+            grid-column: span 1;
+        }
+        .composite-kpi-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        .composite-kpi-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+        .composite-kpi-item .label {
+            font-size: 13px;
+            color: var(--secondary-text);
+        }
+        .composite-kpi-item .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--corp-blue-dark);
+        }
+
+        .chart-card {
+            grid-column: span 2;
+        }
+        
+        .large-chart-card {
+            grid-column: span 4;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            color: var(--primary-text);
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--corp-blue-dark);
+            margin: 0;
+        }
+
+        .kpi-trend {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .kpi-trend.positive { color: var(--positive-color); }
+        .kpi-trend.negative { color: var(--negative-color); }
+
+        .kpi-trend svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+        }
+        
+        #ventas-content, #marketing-content, #operaciones-content {
+             grid-template-columns: repeat(4, 1fr);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="logo">ÓPTICA <span>SANTA LUCÍA</span></div>
+            <div class="dashboard-title">| Dashboard Gerencial</div>
+        </header>
+
+        <div class="dashboard-body">
+            <aside class="filters-pane">
+                <div>
+                    <h3>Filtros</h3>
+                    <div class="filter-group">
+                        <label for="date-start">Fecha Inicio</label>
+                        <input type="date" id="date-start" value="2025-01-01">
+                    </div>
+                    <div class="filter-group">
+                        <label for="date-end">Fecha Fin</label>
+                        <input type="date" id="date-end" value="2025-05-31">
+                    </div>
+                    <div class="filter-group">
+                        <label for="business-unit">Unidad de Negocio</label>
+                        <select id="business-unit">
+                            <option>Todas</option>
+                            <option>Óptica</option>
+                            <option>Clínica</option>
+                            <option>Audiología</option>
+                            <option>Luze</option>
+                        </select>
+                    </div>
+                     <div class="filter-group">
+                        <label for="payer-type">Tipo de Pagador (Clínica)</label>
+                        <select id="payer-type">
+                            <option>Todos</option>
+                            <option>EPS</option>
+                            <option>Prepagada</option>
+                            <option>Pólizas</option>
+                            <option>Particulares</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="clear-filters-btn">Limpiar Filtros</button>
+            </aside>
+            <main class="main-canvas">
+                <nav class="tabs">
+                    <button class="tab-button active" data-tab="resumen">Resumen Gerencial</button>
+                    <button class="tab-button" data-tab="marketing">Marketing y Tráfico</button>
+                    <button class="tab-button" data-tab="ventas">Ventas y Conversión</button>
+                    <button class="tab-button" data-tab="operaciones">Operaciones y CRM</button>
+                </nav>
+
+                <!-- PESTAÑA: RESUMEN GERENCIAL -->
+                <div id="resumen-content" class="tab-content active">
+                    <!-- ... contenido sin cambios ... -->
+                    <div class="card kpi-card">
+                        <p class="card-title">Ingresos Totales</p>
+                        <p class="kpi-value">$10.2M</p>
+                        <div class="kpi-trend positive">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.22 9.64a.75.75 0 01-1.06-1.06l5.25-5.25a.75.75 0 011.06 0l5.25 5.25a.75.75 0 11-1.06 1.06L10.75 5.612V16.25A.75.75 0 0110 17z" clip-rule="evenodd" /></svg>
+                            <span>+12.5% vs. Meta</span>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">ROAS General</p>
+                        <p class="kpi-value">4.24</p>
+                         <div class="kpi-trend positive">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.22 9.64a.75.75 0 01-1.06-1.06l5.25-5.25a.75.75 0 011.06 0l5.25 5.25a.75.75 0 11-1.06 1.06L10.75 5.612V16.25A.75.75 0 0110 17z" clip-rule="evenodd" /></svg>
+                            <span>+5% vs. Periodo Ant.</span>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">NPS (Net Promoter Score)</p>
+                        <p class="kpi-value">62</p>
+                        <div class="kpi-trend negative">
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.97-4.028a.75.75 0 111.06 1.06l-5.25 5.25a.75.75 0 01-1.06 0l-5.25-5.25a.75.75 0 111.06-1.06l3.97 4.028V3.75A.75.75 0 0110 3z" clip-rule="evenodd" /></svg>
+                            <span>-3 pts vs. Meta</span>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">Citas Agendadas (Part.)</p>
+                        <p class="kpi-value">4,235</p>
+                        <div class="kpi-trend positive">
+                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.22 9.64a.75.75 0 01-1.06-1.06l5.25-5.25a.75.75 0 011.06 0l5.25 5.25a.75.75 0 11-1.06 1.06L10.75 5.612V16.25A.75.75 0 0110 17z" clip-rule="evenodd" /></svg>
+                            <span>+10% vs. Meta</span>
+                        </div>
+                    </div>
+                    <div class="card chart-card" style="grid-column: span 2;">
+                        <p class="card-title">Ingresos por Unidad de Negocio</p>
+                        <canvas id="ventasUnidadChart"></canvas>
+                    </div>
+                     <div class="card chart-card" style="grid-column: span 2;">
+                        <p class="card-title">Evolución de Ingresos vs Meta (Acumulado)</p>
+                        <canvas id="ingresosMetaChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA: MARKETING Y TRÁFICO -->
+                <div id="marketing-content" class="tab-content">
+                    <!-- ... contenido sin cambios ... -->
+                    <div class="card kpi-card">
+                        <p class="card-title">Seguidores IG</p>
+                        <p class="kpi-value">25,608</p>
+                        <div class="kpi-trend positive"><span>92% de Meta</span></div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">Engagement IG</p>
+                        <p class="kpi-value">3.24%</p>
+                        <div class="kpi-trend negative"><span>-1.23 pts vs. Promedio</span></div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">Usuarios E-com</p>
+                        <p class="kpi-value">36,893</p>
+                        <div class="kpi-trend negative"><span>-3% vs. Meta</span></div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">Tráfico Follow Up</p>
+                        <p class="kpi-value">61,391</p>
+                        <div class="kpi-trend positive"><span>+5% vs. Periodo Ant.</span></div>
+                    </div>
+                    <div class="card chart-card">
+                        <p class="card-title">Tráfico Web por Fuente</p>
+                        <canvas id="traficoFuenteChart"></canvas>
+                    </div>
+                     <div class="card chart-card">
+                        <p class="card-title">Evolución Seguidores (IG vs FB)</p>
+                        <canvas id="seguidoresChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA: VENTAS Y CONVERSIÓN (MODIFICADA) -->
+                <div id="ventas-content" class="tab-content">
+                    <div class="card kpi-card">
+                        <p class="card-title">Ventas Digitales</p>
+                        <p class="kpi-value">$48,677</p>
+                        <div class="kpi-trend positive"><span>+8% vs. Meta</span></div>
+                    </div>
+                     <div class="card kpi-card">
+                        <p class="card-title">Tasa Conversión E-com</p>
+                        <p class="kpi-value">0.99%</p>
+                        <div class="kpi-trend negative"><span>-0.11 pts vs. Meta</span></div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">Ticket Promedio (Óptica)</p>
+                        <p class="kpi-value">$434,746</p>
+                        <div class="kpi-trend positive"><span>+2% vs. Periodo Ant.</span></div>
+                    </div>
+                    <!-- NUEVO KPI -->
+                     <div class="card kpi-card">
+                        <p class="card-title">Ventas a Empresas</p>
+                        <p class="kpi-value">$780.5k</p>
+                        <div class="kpi-trend positive"><span>+5% vs. Meta</span></div>
+                    </div>
+                    
+                    <!-- NUEVO GRÁFICO -->
+                    <div class="card chart-card">
+                        <p class="card-title">Ingresos Clínica por Tipo de Pagador</p>
+                        <canvas id="clinicaPagadorChart"></canvas>
+                    </div>
+                    
+                    <!-- NUEVA TARJETA COMPUESTA -->
+                    <div class="card chart-card composite-kpi-card">
+                        <p class="card-title">Rendimiento Campaña: Follow Up</p>
+                        <div class="composite-kpi-item">
+                            <span class="label">Ventas Follow Up</span>
+                            <span class="value">$15,250</span>
+                        </div>
+                        <div class="composite-kpi-item">
+                            <span class="label">Tickets Follow Up</span>
+                            <span class="value">45</span>
+                        </div>
+                        <div class="composite-kpi-item">
+                            <span class="label">Ticket Promedio Follow Up</span>
+                            <span class="value">$338,888</span>
+                        </div>
+                         <div class="composite-kpi-item">
+                            <span class="label">% Conversión Follow Up</span>
+                            <span class="value">2.5%</span>
+                        </div>
+                    </div>
+
+                    <div class="card large-chart-card">
+                        <p class="card-title">Ventas Mensuales (E-commerce vs WhatsApp)</p>
+                        <canvas id="ventasDigitalesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA: OPERACIONES Y CRM (MODIFICADA) -->
+                <div id="operaciones-content" class="tab-content">
+                    <div class="card kpi-card">
+                        <p class="card-title">Citas Particulares</p>
+                        <p class="kpi-value">4,235</p>
+                        <div class="kpi-trend positive"><span>+10% Cumpl. Meta</span></div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">Citas por EPS/Convenio</p>
+                        <p class="kpi-value">8,340</p>
+                        <div class="kpi-trend positive"><span>+5% vs. Meta</span></div>
+                    </div>
+                    <div class="card kpi-card">
+                        <p class="card-title">PQRS Abiertos</p>
+                        <p class="kpi-value">28</p>
+                        <div class="kpi-trend negative"><span>+3 vs. Mes Ant.</span></div>
+                    </div>
+
+                    <!-- NUEVA TARJETA COMPUESTA DE CRM -->
+                    <div class="card kpi-card composite-kpi-card">
+                         <p class="card-title">Gestión de Leads (CRM)</p>
+                         <div class="composite-kpi-item">
+                            <span class="label">Contactos Habeas Data</span>
+                            <span class="value">125,480</span>
+                        </div>
+                         <div class="composite-kpi-item">
+                            <span class="label">Presupuestos Enviados</span>
+                            <span class="value">1,850</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card chart-card">
+                        <p class="card-title">Citas por Estado</p>
+                        <canvas id="citasEstadoChart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <p class="card-title">Tipos de PQRS Recibidos</p>
+                        <canvas id="pqrsChart"></canvas>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.tab-button');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(item => item.classList.remove('active'));
+            contents.forEach(item => item.classList.remove('active'));
+            tab.classList.add('active');
+            const targetId = tab.getAttribute('data-tab') + '-content';
+            document.getElementById(targetId).classList.add('active');
+            window.dispatchEvent(new Event('resize')); // Recalculate chart sizes
+        });
+    });
+
+    const chartFont = "'Poppins', sans-serif";
+    const primaryColor = '#002E5D';
+    const accentColor = '#C5B358';
+    const positiveColor = '#16A34A';
+    const negativeColor = '#DC2626';
+    const warningColor = '#F59E0B';
+    const secondaryColors = ['#607D8B', '#9E9E9E', '#795548', '#546E7A'];
+
+    // --- GRÁFICOS PESTAÑA RESUMEN ---
+    new Chart(document.getElementById('ventasUnidadChart'), {type: 'bar',data: {labels: ['Óptica', 'Clínica', 'Audiología', 'Luze'],datasets: [{label: 'Ingresos',data: [4914964, 2255501, 850000, 450000],backgroundColor: primaryColor}]},options: {indexAxis: 'y',responsive: true,maintainAspectRatio: false,plugins: { legend: { display: false } }}});
+    new Chart(document.getElementById('ingresosMetaChart'), {type: 'line',data: {labels: ['ene', 'feb', 'mar', 'abr', 'may'],datasets: [{label: 'Ingresos Reales',data: [8217342, 14092794, 22442239, 30348985, 39327732],borderColor: primaryColor,backgroundColor: 'rgba(0, 46, 93, 0.1)',fill: true,tension: 0.4},{label: 'Meta',data: [7890000, 15780000, 23670000, 31560000, 39450000],borderColor: accentColor,borderDash: [5, 5],fill: false}]},options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {font: { family: chartFont } } } } }});
+    
+    // --- GRÁFICOS PESTAÑA MARKETING ---
+    new Chart(document.getElementById('traficoFuenteChart'), {type: 'bar',data: {labels: ['Directo', 'Orgánico', 'Paid Social', 'Referral', 'Email (Follow up)'],datasets: [{label: 'Usuarios',data: [15000, 12000, 8000, 4000, 61391].sort((a, b) => b - a),backgroundColor: primaryColor}]},options: {indexAxis: 'y',responsive: true, maintainAspectRatio: false,plugins: { legend: { display: false } }}});
+    new Chart(document.getElementById('seguidoresChart'), {type: 'line',data: {labels: ['ene', 'feb', 'mar', 'abr', 'may'],datasets: [{ label: 'Instagram', data: [22179, 22801, 24021, 25177, 25608], borderColor: '#E1306C' },{ label: 'Facebook', data: [90076, 90111, 90126, 90145, 90146], borderColor: '#4267B2' }]},options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {font: { family: chartFont } } } } }});
+
+    // --- GRÁFICOS PESTAÑA VENTAS ---
+    new Chart(document.getElementById('ventasDigitalesChart'), {type: 'bar',data: {labels: ['ene', 'feb', 'mar', 'abr', 'may'],datasets: [{ label: 'Ventas E-com', data: [37475, 29568, 32754, 40096, 36767], backgroundColor: primaryColor },{ label: 'Ventas WhatsApp', data: [14271, 10784, 10025, 12623, 11910], backgroundColor: accentColor }]},options: {responsive: true, maintainAspectRatio: false,scales: { x: { stacked: true }, y: { stacked: true } },plugins: { legend: { position: 'bottom', labels: {font: { family: chartFont } } } }}});
+    // NUEVO GRÁFICO: Ingresos Clínica por Pagador
+    new Chart(document.getElementById('clinicaPagadorChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['EPS', 'Particulares', 'Prepagada', 'Pólizas'],
+            datasets: [{
+                label: 'Ingresos Clínica',
+                data: [1200000, 655501, 250000, 150000],
+                backgroundColor: [primaryColor, accentColor, secondaryColors[0], secondaryColors[3]],
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: {font: { family: chartFont }}}}
+        }
+    });
+    
+    // --- GRÁFICOS PESTAÑA OPERACIONES ---
+    new Chart(document.getElementById('citasEstadoChart'), {type: 'bar',data: {labels: ['Cumplida', 'Cancelada', 'No Asistió', 'Reprogramada'],datasets: [{data: [9500, 1200, 800, 500],backgroundColor: [positiveColor, warningColor, negativeColor, secondaryColors[0]]}]},options: { indexAxis: 'y',responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+    new Chart(document.getElementById('pqrsChart'), {type: 'bar',data: {labels: ['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación'],datasets: [{label: 'Cantidad',data: [12, 7, 9, 15, 5],backgroundColor: [secondaryColors[0], negativeColor, warningColor, accentColor, positiveColor]}]},options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }});
+});
+</script>
+
+</body>
+</html>
